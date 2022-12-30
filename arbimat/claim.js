@@ -1,1 +1,217 @@
-const contractVestingDevsAddress="0x91E43015255886d334d14121831c654Dd87B849C",contractVestingReferralsAddress="0xC1B8470DF35825bb966bB078BabA3c05cAb03eCf",contractVestingAirdropsAddress="0x0B2E0E39802a71b8C61352dD43e8980bECD77361",contractPresaleAddress="0xDfc1e102343B600262Dd92524EF6ECD694a195e2",contractPresaleAbi=["function presaleMaxWalletAllocationEth() public view returns (uint256)","function presaleMaxWalletAllocationTokens() public view returns (uint256)","function presaleMaxTotalAmountEth() public view returns (uint256)","function totalPaidEth() public view returns (uint256)","function isPurchaseWithoutWlAllowed() public view returns (bool)","function isNoLimitPurchaseAllowed() public view returns (bool)","function isClaimingAllowed() public view returns (bool)","function totalPurchasedTokens() public view view returns (uint256)","function isWhitelisted(address _address) public view returns (bool)","function isClaimed(address _address) public view returns (bool)","function purchasedAmountEth(address _address) public view returns (uint256)","function purchase() public payable","function claim() public"],contractVestingAbi=["function getTokensAmountClaimable(address _recipient) public view returns (uint256)","function getTokensAmountTotalVested(address _recipient) public view returns (uint256) ","function getTokensAmountUnclaimed(address _recipient) public view returns (uint256)","function getTokensAmountClaimed(address _recipient) public view returns (uint256)","function claim() public "];let provider,signer,contractPresale,connectedWalletAddress="";function web3(){return void 0===provider&&(provider=new ethers.providers.Web3Provider(window.ethereum,"any"),signer=provider.getSigner(),contractPresale=new ethers.Contract(contractPresaleAddress,contractPresaleAbi,signer),contractVestingDevs=new ethers.Contract(contractVestingDevsAddress,contractVestingAbi,signer),contractVestingAirdrops=new ethers.Contract(contractVestingAirdropsAddress,contractVestingAbi,signer),contractVestingReferral=new ethers.Contract(contractVestingReferralsAddress,contractVestingAbi,signer)),{provider:provider,signer:signer,contractPresale:contractPresale,contractVestingDevs:contractVestingDevs,contractVestingAirdrops:contractVestingAirdrops,contractVestingReferral:contractVestingReferral}}async function onBtnConnect(){const{provider:e}=web3();e.provider.on("accountsChanged",(e=>onWalletConnected())),e.provider.on("chainChanged",(e=>onWalletConnected())),e.provider.on("networkChanged",(e=>onWalletConnected())),await onWalletConnected()}async function onWalletConnected(){const{provider:e,contract:t}=web3(),n=await e.send("eth_requestAccounts",[]);connectedWalletAddress=n[0],document.getElementById("connectedWallet").value=connectedWalletAddress,await updateControls()}function round(e,t){return Math.floor(e*10**t)/10**t}async function fillVesting(e,t,n,o){if(!connectedWalletAddress)return document.getElementById(t).value="-",void(document.getElementById(n).value="-");const a=await e.getTokensAmountClaimable(connectedWalletAddress),i=await e.getTokensAmountTotalVested(connectedWalletAddress),l=await e.getTokensAmountUnclaimed(connectedWalletAddress),r=await e.getTokensAmountClaimed(connectedWalletAddress),c=Number(ethers.utils.formatUnits(a,18)),s=Number(ethers.utils.formatUnits(i,18)),d=(Number(ethers.utils.formatUnits(l,18)),Number(ethers.utils.formatUnits(r,18)));s>0?(document.getElementById(t).value=round(d,2)+" of "+round(s,2)+" claimed",document.getElementById(n).value=round(c,2)+" claimeable",document.getElementById(o).classList.remove("disabled")):(document.getElementById(t).value="-",document.getElementById(n).value="nothing to claim",document.getElementById(o).classList.add("disabled"))}async function fillPresale(e,t,n,o){if(!connectedWalletAddress)return document.getElementById(t).value="-",void(document.getElementById(n).value="-");const a=await e.purchasedAmountEth(connectedWalletAddress),i=await e.presaleMaxWalletAllocationTokens(),l=await e.presaleMaxWalletAllocationEth(),r=await e.isClaimed(connectedWalletAddress),c=await e.isClaimingAllowed(),s=Number(ethers.utils.formatUnits(i,18)),d=Number(ethers.utils.formatUnits(l,18)),u=Number(ethers.utils.formatUnits(a,18)),m=u*(s/d);0==c?(document.getElementById(t).value="0 of "+round(m,2)+" claimed",document.getElementById(n).value="Claiming not allowed",document.getElementById(o).classList.remove("disabled")):0==r&&u>0?(document.getElementById(t).value="0 of "+round(m,2)+" claimed",document.getElementById(n).value=round(m,2)+" claimeable",document.getElementById(o).classList.remove("disabled")):1==r?(document.getElementById(t).value=round(m,2)+" of "+round(m,2)+" claimed",document.getElementById(n).value="0 claimeable",document.getElementById(o).classList.add("disabled")):(document.getElementById(t).value="-",document.getElementById(n).value="nothing to claim",document.getElementById(o).classList.add("disabled"))}async function updateControls(){const{provider:e,signer:t,contractPresale:n,contractVestingDevs:o,contractVestingAirdrops:a,contractVestingReferral:i}=web3();fillVesting(o,"amountClaimDeveloper1","amountClaimDeveloper2","btnClaimDeveloper"),fillVesting(a,"amountClaimAirdrop1","amountClaimAirdrop2","btnClaimAirdrop"),fillVesting(i,"amountClaimReferral1","amountClaimReferral2","btnClaimReferral"),fillPresale(n,"amountClaimPresale1","amountClaimPresale2","btnClaimPresale")}async function btnClaimDeveloper(){const{contractVestingDevs:e}=web3(),t=await e.claim();console.log("tx",t)}async function btnClaimAirdrop(){const{contractVestingAirdrops:e}=web3(),t=await e.claim();console.log("tx",t)}async function btnClaimReferral(){const{contractVestingReferral:e}=web3(),t=await e.claim();console.log("tx",t)}async function btnClaimPresale(){const{contractPresale:e}=web3(),t=await e.claim();console.log("tx",t)}$((function(){document.getElementById("btnConnect").onclick=onBtnConnect,document.getElementById("btnClaimPresale").onclick=btnClaimPresale,document.getElementById("btnClaimReferral").onclick=btnClaimReferral,document.getElementById("btnClaimAirdrop").onclick=btnClaimAirdrop,document.getElementById("btnClaimDeveloper").onclick=btnClaimDeveloper,updateControls(),setInterval((()=>updateControls()),5e3)}));
+const contractVestingDevsAddress = "0x91E43015255886d334d14121831c654Dd87B849C"
+const contractVestingReferralsAddress = "0xC1B8470DF35825bb966bB078BabA3c05cAb03eCf"
+const contractVestingAirdropsAddress = "0x0B2E0E39802a71b8C61352dD43e8980bECD77361"
+const contractPresaleAddress = "0xDfc1e102343B600262Dd92524EF6ECD694a195e2"
+const contractPresaleAbi = [
+  "function presaleMaxWalletAllocationEth() public view returns (uint256)",
+  "function presaleMaxWalletAllocationTokens() public view returns (uint256)",
+  "function presaleMaxTotalAmountEth() public view returns (uint256)",
+  "function totalPaidEth() public view returns (uint256)",
+  "function isPurchaseWithoutWlAllowed() public view returns (bool)",
+  "function isNoLimitPurchaseAllowed() public view returns (bool)",
+  "function isClaimingAllowed() public view returns (bool)",
+  "function totalPurchasedTokens() public view view returns (uint256)",
+  "function isWhitelisted(address _address) public view returns (bool)",
+  "function isClaimed(address _address) public view returns (bool)",
+  "function purchasedAmountEth(address _address) public view returns (uint256)",
+  "function purchase() public payable",
+  "function claim() public",
+];
+
+const contractVestingAbi = [
+  "function getTokensAmountClaimable(address _recipient) public view returns (uint256)",
+  "function getTokensAmountTotalVested(address _recipient) public view returns (uint256) ",
+  "function getTokensAmountUnclaimed(address _recipient) public view returns (uint256)",
+  "function getTokensAmountClaimed(address _recipient) public view returns (uint256)",
+  "function claim() public ",
+];
+
+let connectedWalletAddress = '';
+let provider, signer, contractPresale;
+
+function web3()
+{
+  if (provider === undefined)
+  {
+    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    signer = provider.getSigner();
+    contractPresale = new ethers.Contract(contractPresaleAddress, contractPresaleAbi, signer);
+    contractVestingDevs = new ethers.Contract(contractVestingDevsAddress, contractVestingAbi, signer);
+    contractVestingAirdrops = new ethers.Contract(contractVestingAirdropsAddress, contractVestingAbi, signer);
+    contractVestingReferral = new ethers.Contract(contractVestingReferralsAddress, contractVestingAbi, signer);
+  }
+  return {
+    provider, signer, contractPresale, contractVestingDevs, contractVestingAirdrops, contractVestingReferral
+  }
+}
+
+async function onBtnConnect() 
+{
+  const { provider } = web3();
+
+  const networkId = await provider.getNetwork();
+  if (networkId.chainId != 42161)
+  {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: 42161 }]
+    });
+  }
+  
+  provider.provider.on("accountsChanged", (accounts) => onWalletConnected());
+  provider.provider.on("chainChanged", (chainId) => onWalletConnected());
+  provider.provider.on("networkChanged", (networkId) => onWalletConnected());
+
+  await onWalletConnected();
+}
+
+
+async function onWalletConnected()
+{
+  const { provider, contract } = web3();
+
+  const accs = await provider.send("eth_requestAccounts", []);
+  connectedWalletAddress = accs[0];
+  document.getElementById('connectedWallet').value = connectedWalletAddress;
+  await updateControls();
+}
+
+function round(number, decimals)
+{
+  return Math.floor(number * 10 ** decimals) / 10 ** decimals;
+}
+
+async function fillVesting(contract, edit1, edit2, btn)
+{
+  if (!connectedWalletAddress)
+  {
+    document.getElementById(edit1).value = '-';
+    document.getElementById(edit2).value = '-';
+    return;
+  }
+
+  const claimable = await contract.getTokensAmountClaimable(connectedWalletAddress);
+  const totalVested = await contract.getTokensAmountTotalVested(connectedWalletAddress);
+  const unclaimed = await contract.getTokensAmountUnclaimed(connectedWalletAddress);
+  const claimed = await contract.getTokensAmountClaimed(connectedWalletAddress);
+  const claimableNum = Number(ethers.utils.formatUnits(claimable, 18));
+  const totalVestedNum = Number(ethers.utils.formatUnits(totalVested, 18));
+  const unclaimedNum = Number(ethers.utils.formatUnits(unclaimed, 18));
+  const claimedNum = Number(ethers.utils.formatUnits(claimed, 18));
+
+  if (totalVestedNum > 0)
+  {
+    document.getElementById(edit1).value = round(claimedNum, 2) + ' of ' + round(totalVestedNum, 2) + ' claimed';
+    document.getElementById(edit2).value = round(claimableNum, 2) + ' claimeable';
+    document.getElementById(btn).classList.remove("disabled");
+  }
+  else
+  {
+    document.getElementById(edit1).value = '-';
+    document.getElementById(edit2).value = 'nothing to claim';
+    document.getElementById(btn).classList.add("disabled");
+  }
+}
+
+async function fillPresale(contract, edit1, edit2, btn)
+{
+  if (!connectedWalletAddress)
+  {
+    document.getElementById(edit1).value = '-';
+    document.getElementById(edit2).value = '-';
+    return;
+  }
+
+  const myPurchaseEth = await contract.purchasedAmountEth(connectedWalletAddress);
+  const maxWalletTokens = await contract.presaleMaxWalletAllocationTokens();
+  const maxWalletEths = await contract.presaleMaxWalletAllocationEth();
+  const isClaimed = await contract.isClaimed(connectedWalletAddress);
+  const isClaimingAllowed = await contract.isClaimingAllowed();
+  const maxWalletTokensNum = Number(ethers.utils.formatUnits(maxWalletTokens, 18));
+  const maxWalletEthsNum = Number(ethers.utils.formatUnits(maxWalletEths, 18));
+  const myPurchaseEthNum = Number(ethers.utils.formatUnits(myPurchaseEth, 18));
+  const presaleTokenRatio = maxWalletTokensNum / maxWalletEthsNum;
+  const tokens = myPurchaseEthNum * presaleTokenRatio;
+  
+  if (isClaimingAllowed == false)
+  {
+    document.getElementById(edit1).value = '0 of ' + round(tokens, 2) + ' claimed';
+    document.getElementById(edit2).value = 'Claiming not allowed';
+    document.getElementById(btn).classList.add("disabled");
+  }
+  else if (isClaimed == false && myPurchaseEthNum > 0)
+  {
+    document.getElementById(edit1).value = '0 of ' + round(tokens, 2) + ' claimed';
+    document.getElementById(edit2).value = round(tokens, 2) + ' claimeable';
+    document.getElementById(btn).classList.remove("disabled");
+  }
+  else if (isClaimed == true)
+  {
+    document.getElementById(edit1).value = round(tokens, 2) + ' of ' + round(tokens, 2) + ' claimed';
+    document.getElementById(edit2).value = '0 claimeable';
+    document.getElementById(btn).classList.add("disabled");
+  }
+  else
+  {
+    document.getElementById(edit1).value = '-';
+    document.getElementById(edit2).value = 'nothing to claim';
+    document.getElementById(btn).classList.add("disabled");
+  }
+}
+
+async function updateControls()
+{
+  const { provider, signer, contractPresale, contractVestingDevs, contractVestingAirdrops, contractVestingReferral } = web3();
+
+  fillVesting(contractVestingDevs, 'amountClaimDeveloper1', 'amountClaimDeveloper2', 'btnClaimDeveloper');
+  fillVesting(contractVestingAirdrops, 'amountClaimAirdrop1', 'amountClaimAirdrop2', 'btnClaimAirdrop');
+  fillVesting(contractVestingReferral, 'amountClaimReferral1', 'amountClaimReferral2', 'btnClaimReferral');
+  fillPresale(contractPresale, 'amountClaimPresale1', 'amountClaimPresale2', 'btnClaimPresale');
+}
+
+async function btnClaimDeveloper()
+{
+  const { contractVestingDevs } = web3();
+  const tx = await contractVestingDevs.claim();
+  console.log("tx", tx);
+}
+
+async function btnClaimAirdrop()
+{
+  const { contractVestingAirdrops } = web3();
+  const tx = await contractVestingAirdrops.claim();
+  console.log("tx", tx);
+}
+
+async function btnClaimReferral()
+{
+  const { contractVestingReferral } = web3();
+  const tx = await contractVestingReferral.claim();
+  console.log("tx", tx);
+}
+
+async function btnClaimPresale()
+{
+  const { contractPresale } = web3();
+  const tx = await contractPresale.claim();
+  console.log("tx", tx);
+}
+
+/**
+ * main
+ */
+$(function ()
+{
+  document.getElementById('btnConnect').onclick = onBtnConnect;
+  document.getElementById('btnClaimPresale').onclick = btnClaimPresale;
+  document.getElementById('btnClaimReferral').onclick = btnClaimReferral;
+  document.getElementById('btnClaimAirdrop').onclick = btnClaimAirdrop;
+  document.getElementById('btnClaimDeveloper').onclick = btnClaimDeveloper;
+
+  //document.getElementById('btnPurchase').onclick = onBtnPurchase;
+  updateControls();
+
+  //some RPC doens't support it, so keep asking manually
+  setInterval(() => updateControls(), 1000 * 5);
+});
+

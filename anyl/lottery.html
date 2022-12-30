@@ -2,7 +2,7 @@
 
 <!-- variables:
   vendor-js: 
-  custom-js: ./index.jshttps://cdn.ethers.io/lib/ethers-5.2.umd.min.js
+  custom-js: ./lottery.jshttps://cdn.ethers.io/lib/ethers-5.2.umd.min.js
   custom-css:  
 -->
 <html
@@ -15,7 +15,7 @@
 >
   <!-- variables:
   vendor-js: 
-  custom-js: ./index.jshttps://cdn.ethers.io/lib/ethers-5.2.umd.min.js
+  custom-js: ./lottery.jshttps://cdn.ethers.io/lib/ethers-5.2.umd.min.js
   custom-css:  
 
   vendor-js.datatables: 
@@ -25,7 +25,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-  <title></title>
+  <title>ArbiMat market</title>
 
   <meta name="description" content="" />
 
@@ -110,14 +110,107 @@
 
 						 <!-- Content -->
 
+<h1 class="mb-3 text-center">ANYL token lottery</h1>
 
+<!-- row-->
+<div class="row pt-5">
+  <!-- LEFT COLUMN OF ROW -->
+  <div class="col-md-3"></div>
+  <div class="col-md-6">
+    <!-- left card-->
+    <div class="card mb-5">
+      <h5 class="card-header">ANYL token lottery</h5>
+      <label class="mx-4"
+        >Welcome to the ANYL token lottery. Here you can bet your tokens and win ETH.<br />
+        You have 10% chance to win 10x. You can bet all in, or you can split it to multiple bets
+        <br />
+        Minimal bet is 250.000, maximum is 2.000.000<br />
+      </label>
 
-<h4 class="py-3 breadcrumb-wrapper mb-4"><span class="text-muted fw-light">Home</h4>
+      <div class="card-body">
+        <!-- wallet selection-->
+        <div class="mb-3">
+          <label class="form-label">Connected wallet</label>
+          <input
+            type="text"
+            class="form-control"
+            id="connectedWallet"
+            placeholder="0x..........."
+            value=""
+          />
+        </div>
+        <div class="d-grid gap-2">
+          <button id="btnConnect" class="btn btn-primary">CONNECT</button>
+        </div>
 
+        <div class="mb-3 mt-5">
+          <label class="form-label">Please enter amount of tokens to bet</label>
+          <label id="labelAmountTokens" class="form-label ms-1"></label>
+          <div class="input-group">
+            <input type="number" step="1" class="form-control" id="tokensAmount" value="0" />
+            <button class="btn btn-outline-primary px-2" type="button" onclick="fillTokens(25)">
+              25%
+            </button>
+            <button class="btn btn-outline-primary px-2" type="button" onclick="fillTokens(50)">
+              50%
+            </button>
+            <button class="btn btn-outline-primary px-2" type="button" onclick="fillTokens(100)">
+              100%
+            </button>
+            <span class="input-group-text" id="tokensAmountCurrency">ANYL</span>
+          </div>
+        </div>
 
-    <h1>Amazing day!</h1>
+        <div class="d-grid gap-2">
+          <button id="btnApprove" class="btn btn-primary disabled">APPROVE</button>
+          <button id="btnBet" class="btn btn-primary disabled">BET</button>
+        </div>
+      
+        <div class="mb-0 alert alert-danger mt-3" id="resultLoose" role="alert" hidden></div>
+        <div class="mb-0 alert alert-success mt-3" id="resultWin" role="alert" hidden></div>
 
-         
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <h5 class="card-header">Information</h5>
+
+      <div class="card-body">
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label">Tokens in lottery</label>
+          <div class="col-sm-9">
+            <div class="input-group">
+              <input class="form-control" id="tokensInLottery" type="text" name="tokensInLottery" />
+                <span class="input-group-text" id="tokensAmountCurrency">ANYL</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label">ETH prize pool</label>
+          <div class="col-sm-9">
+            <div class="input-group">
+              <input class="form-control" id="ethPrizePool" type="text" name="ethPrizePool" />
+                <span class="input-group-text" id="tokensAmountCurrency">ETH</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label">Chance to win</label>
+          <div class="col-sm-9">
+            <div class="input-group">
+              <input class="form-control" id="chanceToWin" type="text" name="chanceToWin"
+              value="10%"">
+                <span class="input-group-text" id="tokensAmountCurrency">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- / Content -->
 
              </div>
@@ -141,7 +234,7 @@
 
     <!-- variables:
   vendor-js: 
-  custom-js: ./index.jshttps://cdn.ethers.io/lib/ethers-5.2.umd.min.js
+  custom-js: ./lottery.jshttps://cdn.ethers.io/lib/ethers-5.2.umd.min.js
   custom-css:  
 
   vendor-js.datatables: 
@@ -193,7 +286,7 @@
 
 <!-- page JS -->
 
-<script src="./index.js"></script>
+<script src="./lottery.js"></script>
 
 <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 

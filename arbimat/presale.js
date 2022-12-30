@@ -1,1 +1,159 @@
-const contractPresaleAddress="0xDfc1e102343B600262Dd92524EF6ECD694a195e2",contractPresaleAbi=["function presaleMaxWalletAllocationEth() public view returns (uint256)","function presaleMaxWalletAllocationTokens() public view returns (uint256)","function presaleMaxTotalAmountEth() public view returns (uint256)","function totalPaidEth() public view returns (uint256)","function isPurchaseWithoutWlAllowed() public view returns (bool)","function isNoLimitPurchaseAllowed() public view returns (bool)","function isClaimingAllowed() public view returns (bool)","function totalPurchasedTokens() public view view returns (uint256)","function isWhitelisted(address _address) public view returns (bool)","function isClaimed(address _address) public view returns (bool)","function purchasedAmountEth(address _address) public view returns (uint256)","function purchase() public payable","function claim() public"];let provider,signer,contractPresale,connectedWalletAddress="";function web3(){return void 0===provider&&(provider=new ethers.providers.Web3Provider(window.ethereum,"any"),signer=provider.getSigner(),contractPresale=new ethers.Contract(contractPresaleAddress,contractPresaleAbi,signer)),{provider:provider,signer:signer,contractPresale:contractPresale}}async function onBtnConnect(){const{provider:e}=web3();e.provider.on("accountsChanged",(e=>onWalletConnected())),e.provider.on("chainChanged",(e=>onWalletConnected())),e.provider.on("networkChanged",(e=>onWalletConnected())),await onWalletConnected()}async function onWalletConnected(){const{provider:e,contract:t}=web3(),n=await e.send("eth_requestAccounts",[]);connectedWalletAddress=n[0],document.getElementById("connectedWallet").value=connectedWalletAddress;const r=await contractPresale.isWhitelisted(connectedWalletAddress),a=await contractPresale.isClaimingAllowed(),o=await contractPresale.isPurchaseWithoutWlAllowed(),s=await contractPresale.isNoLimitPurchaseAllowed(),l=await contractPresale.presaleMaxWalletAllocationEth(),c=Number(ethers.utils.formatUnits(l,18)),i=await contractPresale.purchasedAmountEth(connectedWalletAddress),d=Number(ethers.utils.formatUnits(i,18));a?(document.getElementById("btnPurchase").innerText="Presale is over",document.getElementById("btnPurchase").classList.add("disabled")):r||o||s?(document.getElementById("purchaseAmountEth").value=round(c-d,4),document.getElementById("btnPurchase").classList.remove("disabled"),document.getElementById("btnPurchase").innerText="PURCHASE"):(document.getElementById("btnPurchase").innerText="Not whitelisted",document.getElementById("btnPurchase").classList.add("disabled")),await updateControls()}function round(e,t){return Math.floor(e*10**t)/10**t}async function updateControls(){const{provider:e,signer:t,contractPresale:n}=web3(),r=await n.totalPaidEth(),a=await n.presaleMaxTotalAmountEth(),o=await n.presaleMaxWalletAllocationTokens(),s=await n.presaleMaxWalletAllocationEth(),l=connectedWalletAddress?await e.getBalance(connectedWalletAddress):0,c=connectedWalletAddress?await n.purchasedAmountEth(connectedWalletAddress):0,i=Number(ethers.utils.formatUnits(l.toString(),18)),d=Number(ethers.utils.formatUnits(o,18)),u=Number(ethers.utils.formatUnits(s,18)),m=Number(ethers.utils.formatUnits(a,18)),h=Number(ethers.utils.formatUnits(r,18)),b=Number(ethers.utils.formatUnits(c,18)),p=d/u,w=round(h/m*100,1),g=b*p;document.getElementById("presaleProgress").innerText=w+"%",document.getElementById("presaleProgress").setAttribute("style","width: "+w+"%"),document.getElementById("presaleProgress").setAttribute("aria-volumenow",w),document.getElementById("editTotalPresaleCap").value=h+" / "+m,connectedWalletAddress?(document.getElementById("editMyPurchase").value=b+" / "+u,document.getElementById("labelAmountETH").innerText="(balance "+round(i,4)+" ETH)",document.getElementById("editMyPurchaseAmat").value=round(g,2)):(document.getElementById("editMyPurchase").value="-",document.getElementById("labelAmountETH").innerText="",document.getElementById("editMyPurchaseAmat").value="-")}async function onBtnPurchase(){const{provider:e,signer:t,contractPresale:n}=web3();let r=document.getElementById("purchaseAmountEth").value;r=round(r,6);const a=ethers.utils.parseUnits(Math.abs(r).toString(),18);console.log("Buy",a);const o=await n.purchase({value:a});console.log("tx",o)}$((function(){document.getElementById("btnConnect").onclick=onBtnConnect,document.getElementById("btnPurchase").onclick=onBtnPurchase,updateControls(),setInterval((()=>updateControls()),5e3)}));
+const contractPresaleAddress = "0xDfc1e102343B600262Dd92524EF6ECD694a195e2"
+const contractPresaleAbi = [
+  "function presaleMaxWalletAllocationEth() public view returns (uint256)",
+  "function presaleMaxWalletAllocationTokens() public view returns (uint256)",
+  "function presaleMaxTotalAmountEth() public view returns (uint256)",
+  "function totalPaidEth() public view returns (uint256)",
+  "function isPurchaseWithoutWlAllowed() public view returns (bool)",
+  "function isNoLimitPurchaseAllowed() public view returns (bool)",
+  "function isClaimingAllowed() public view returns (bool)",
+  "function totalPurchasedTokens() public view view returns (uint256)",
+  "function isWhitelisted(address _address) public view returns (bool)",
+  "function isClaimed(address _address) public view returns (bool)",
+  "function purchasedAmountEth(address _address) public view returns (uint256)",
+  "function purchase() public payable",
+  "function claim() public",
+];
+
+let connectedWalletAddress = '';
+let provider, signer, contractPresale;
+
+function web3()
+{
+  if (provider === undefined)
+  {
+    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    signer = provider.getSigner();
+    contractPresale = new ethers.Contract(contractPresaleAddress, contractPresaleAbi, signer);
+  }
+  return {
+    provider, signer, contractPresale
+  }
+}
+
+async function onBtnConnect() 
+{
+  const { provider } = web3();
+
+  const networkId = await provider.getNetwork();
+  if (networkId.chainId != 42161)
+  {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{chainId:42161}]
+    });
+  }
+
+  provider.provider.on("accountsChanged", (accounts) => onWalletConnected());
+  provider.provider.on("chainChanged", (chainId) => onWalletConnected());
+  provider.provider.on("networkChanged", (networkId) => onWalletConnected());
+
+  await onWalletConnected();
+}
+
+async function onWalletConnected()
+{
+  const { provider, contract } = web3();
+
+  const accs = await provider.send("eth_requestAccounts", []);
+  connectedWalletAddress = accs[0];
+  document.getElementById('connectedWallet').value = connectedWalletAddress;
+
+  const isWhitelisted = await contractPresale.isWhitelisted(connectedWalletAddress);
+  const isClaiming = await contractPresale.isClaimingAllowed();
+  const isPurchaseWithoutWlAllowed = await contractPresale.isPurchaseWithoutWlAllowed();
+  const isNoLimitPurchaseAllowed = await contractPresale.isNoLimitPurchaseAllowed();
+  const maxAllocation = await contractPresale.presaleMaxWalletAllocationEth();
+  const maxAllocationNum = Number(ethers.utils.formatUnits(maxAllocation, 18));
+  const myPurchaseEth = await contractPresale.purchasedAmountEth(connectedWalletAddress);
+  const myPurchaseEthNum = Number(ethers.utils.formatUnits(myPurchaseEth, 18));
+
+  if (isClaiming)
+  {
+    document.getElementById("btnPurchase").innerText = 'Presale is over';
+    document.getElementById('btnPurchase').classList.add("disabled");
+  }
+  else if (isWhitelisted || isPurchaseWithoutWlAllowed || isNoLimitPurchaseAllowed)
+  {
+    document.getElementById("purchaseAmountEth").value = round(maxAllocationNum - myPurchaseEthNum, 4);
+    document.getElementById('btnPurchase').classList.remove("disabled");
+    document.getElementById("btnPurchase").innerText = 'PURCHASE';
+  }
+  else
+  {
+    document.getElementById("btnPurchase").innerText = 'Not whitelisted';
+    document.getElementById('btnPurchase').classList.add("disabled");
+  }
+
+  await updateControls();
+}
+
+function round(number, decimals)
+{
+  return Math.floor(number * 10 ** decimals) / 10 ** decimals;
+}
+
+async function updateControls()
+{
+  const { provider, signer, contractPresale } = web3();
+  const totalPaidEth = await contractPresale.totalPaidEth();
+  const maxAllocation = await contractPresale.presaleMaxTotalAmountEth();
+  const maxWalletTokens = await contractPresale.presaleMaxWalletAllocationTokens();
+  const maxWalletEths = await contractPresale.presaleMaxWalletAllocationEth();
+  const balance = connectedWalletAddress ? await provider.getBalance(connectedWalletAddress) : 0;
+  const myPurchaseEth = connectedWalletAddress ? await contractPresale.purchasedAmountEth(connectedWalletAddress) : 0;
+
+  const balanceNum = Number(ethers.utils.formatUnits(balance.toString(), 18));
+  const maxWalletTokensNum = Number(ethers.utils.formatUnits(maxWalletTokens, 18));
+  const maxWalletEthsNum = Number(ethers.utils.formatUnits(maxWalletEths, 18));
+  const maxAllocationNum = Number(ethers.utils.formatUnits(maxAllocation, 18));
+  const totalPaidEthNum = Number(ethers.utils.formatUnits(totalPaidEth, 18));
+  const myPurchaseEthNum = Number(ethers.utils.formatUnits(myPurchaseEth, 18));
+
+  const presaleTokenRatio = maxWalletTokensNum / maxWalletEthsNum;
+  const presalePercentProgress = round(totalPaidEthNum / maxAllocationNum * 100, 1);
+  const tokens = myPurchaseEthNum * presaleTokenRatio;
+  const presaleProgress = maxAllocation;
+  document.getElementById('presaleProgress').innerText = presalePercentProgress + '%';
+  document.getElementById('presaleProgress').setAttribute("style", "width: " + presalePercentProgress + "%");
+  document.getElementById('presaleProgress').setAttribute("aria-volumenow", presalePercentProgress);
+  document.getElementById('editTotalPresaleCap').value = totalPaidEthNum + ' / ' + maxAllocationNum;
+
+  if (connectedWalletAddress)
+  {
+    document.getElementById('editMyPurchase').value = myPurchaseEthNum + ' / ' + maxWalletEthsNum;
+    document.getElementById("labelAmountETH").innerText = "(balance " + round(balanceNum, 4) + " ETH)";
+    document.getElementById('editMyPurchaseAmat').value = round(tokens, 2);
+  }
+  else
+  {
+    document.getElementById('editMyPurchase').value = '-';
+    document.getElementById("labelAmountETH").innerText = "";
+    document.getElementById('editMyPurchaseAmat').value = '-';
+  }
+}
+
+async function onBtnPurchase()
+{
+  const { provider, signer, contractPresale } = web3();
+  let purchaseAmountEth = document.getElementById("purchaseAmountEth").value;
+  purchaseAmountEth = round(purchaseAmountEth, 6);
+  const purchaseAmountEthStr = ethers.utils.parseUnits(Math.abs(purchaseAmountEth).toString(), 18);
+  console.log('Buy', purchaseAmountEthStr);
+  const tx = await contractPresale.purchase({ value: purchaseAmountEthStr });
+  console.log("tx", tx);
+}
+
+/**
+ * main
+ */
+$(function ()
+{
+  document.getElementById('btnConnect').onclick = onBtnConnect;
+  document.getElementById('btnPurchase').onclick = onBtnPurchase;
+  updateControls();
+
+  //some RPC doens't support it, so keep asking manually
+  setInterval(() => updateControls(), 1000 * 5);
+});
+
